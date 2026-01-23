@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gerador de Currículo (PT-BR) — 2 colunas, PDF e DOCX</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- DOCX export (client-side) -->
+  <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">CV</div>
+        <div>
+          <h1>Gerador de Currículo</h1>
+          <p class="subtitle">PT-BR • 2 colunas • 3 temas + tema custom • exportar PDF e DOCX • salva automaticamente no navegador</p>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button id="btnExportPDF" class="btn primary">Exportar PDF</button>
+        <button id="btnExportDOCX" class="btn">Exportar DOCX</button>
+        <button id="btnSaveJSON" class="btn ghost">Exportar dados (JSON)</button>
+        <label class="btn ghost filebtn">
+          Importar dados (JSON)
+          <input id="importJSON" type="file" accept="application/json" />
+        </label>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="panel" id="editor">
+        <div class="panel-head">
+          <h2>Editor</h2>
+          <div class="mini">Preencha e veja o preview ao lado. As alterações são salvas automaticamente.</div>
+        </div>
+
+        <div class="block">
+          <h3>Template / Tema</h3>
+          <div class="row">
+            <select id="themeSelect" class="input">
+              <option value="theme-modern">Moderno (azul)</option>
+              <option value="theme-minimal">Minimalista (preto)</option>
+              <option value="theme-classic">Clássico (cinza)</option>
+              <option value="theme-custom">Custom (seu tema)</option>
+            </select>
+            <button id="btnExportTheme" class="btn">Exportar tema</button>
+            <label class="btn ghost filebtn">
+              Importar tema
+              <input id="importTheme" type="file" accept="application/json" />
+            </label>
+          </div>
+
+          <div id="customThemeBox" class="customTheme" style="display:none;">
+            <div class="grid2">
+              <div>
+                <label class="lbl">Cor primária</label>
+                <input id="tPrimary" type="color" class="input" />
+              </div>
+              <div>
+                <label class="lbl">Cor secundária</label>
+                <input id="tSecondary" type="color" class="input" />
+              </div>
+              <div>
+                <label class="lbl">Cor do texto</label>
+                <input id="tText" type="color" class="input" />
+              </div>
+              <div>
+                <label class="lbl">Cor de fundo do papel</label>
+                <input id="tPaper" type="color" class="input" />
+              </div>
+            </div>
+            <div class="helper">Dica: depois clique em “Exportar tema” para salvar e compartilhar. Ao escolher “Custom”, o tema aplicado é o seu.</div>
+          </div>
+        </div>
+
+        <div class="block">
+          <h3>Dados pessoais</h3>
+          <div class="grid2">
+            <div>
+              <label class="lbl">Nome completo</label>
+              <input id="name" class="input" placeholder="Ex: Maria Souza" />
+            </div>
+            <div>
+              <label class="lbl">Título / Cargo alvo</label>
+              <input id="title" class="input" placeholder="Ex: Analista Administrativo | Desenvolvedor(a)" />
+            </div>
+            <div>
+              <label class="lbl">Localização</label>
+              <input id="location" class="input" placeholder="Ex: São Paulo, SP" />
+            </div>
+            <div>
+              <label class="lbl">Telefone (opcional)</label>
+              <input id="phone" class="input" placeholder="Ex: (11) 99999-9999" />
+            </div>
+            <div>
+              <label class="lbl">Email</label>
+              <input id="email" class="input" placeholder="Ex: maria@email.com" />
+            </div>
+            <div>
+              <label class="lbl">LinkedIn (URL)</label>
+              <input id="linkedin" class="input" placeholder="https://linkedin.com/in/seu-perfil" />
+            </div>
+            <div>
+              <label class="lbl">GitHub / Portfólio (URL)</label>
+              <input id="website" class="input" placeholder="https://github.com/seuuser ou seu site" />
+            </div>
+            <div>
+              <label class="lbl">Headline curta (opcional)</label>
+              <input id="headline" class="input" placeholder="Ex: 5 anos em back-end • Python • APIs" />
+            </div>
+          </div>
+        </div>
+
+        <div class="block">
+          <h3>Resumo profissional</h3>
+          <textarea id="summary" class="textarea" rows="5" placeholder="2–5 linhas. Ex: Profissional de tecnologia/administrativo com X anos... foco em... resultados..."></textarea>
+          <div class="row">
+            <button id="btnSuggestBullets" class="btn">Gerar modelo de bullets (impacto)</button>
+            <button id="btnClearAll" class="btn ghost">Limpar tudo</button>
+          </div>
+        </div>
+
+        <div class="block">
+          <h3>Experiências</h3>
+          <div id="expList" class="list"></div>
+          <button id="btnAddExp" class="btn">+ Adicionar experiência</button>
+        </div>
+
+        <div class="block">
+          <h3>Projetos (tecnologia)</h3>
+          <div id="projList" class="list"></div>
+          <button id="btnAddProj" class="btn">+ Adicionar projeto</button>
+        </div>
+
+        <div class="block">
+          <h3>Formação</h3>
+          <div id="eduList" class="list"></div>
+          <button id="btnAddEdu" class="btn">+ Adicionar formação</button>
+        </div>
+
+        <div class="block">
+          <h3>Certificações</h3>
+          <div id="certList" class="list"></div>
+          <button id="btnAddCert" class="btn">+ Adicionar certificação</button>
+        </div>
+
+        <div class="block">
+          <h3>Habilidades</h3>
+          <div class="grid2">
+            <div>
+              <label class="lbl">Tecnologias / Ferramentas</label>
+              <input id="skillsTech" class="input" placeholder="Ex: Python, SQL, Excel, Power BI, Git" />
+            </div>
+            <div>
+              <label class="lbl">Administrativo / Processos</label>
+              <input id="skillsAdmin" class="input" placeholder="Ex: Rotinas administrativas, faturamento, compras, ERP" />
+            </div>
+            <div>
+              <label class="lbl">Soft skills</label>
+              <input id="skillsSoft" class="input" placeholder="Ex: comunicação, organização, liderança" />
+            </div>
+            <div>
+              <label class="lbl">Idiomas</label>
+              <input id="languages" class="input" placeholder="Ex: Inglês (intermediário), Espanhol (básico)" />
+            </div>
+          </div>
+          <div class="helper">Separe por vírgula. Evite listas gigantes; priorize o que é relevante para a vaga.</div>
+        </div>
+
+      </section>
+
+      <section class="panel" id="previewPanel">
+        <div class="panel-head">
+          <h2>Preview</h2>
+          <div class="mini">O PDF usa este layout. O DOCX é exportado em formato simples (compatível e editável).</div>
+        </div>
+
+        <div id="paperWrap" class="paperWrap theme-modern">
+          <article id="paper" class="paper" role="document" aria-label="Currículo">
+            <header class="cvHeader">
+              <div>
+                <div class="cvName" id="pName">Seu Nome</div>
+                <div class="cvTitle" id="pTitle">Título / Cargo alvo</div>
+                <div class="cvHeadline" id="pHeadline"></div>
+              </div>
+              <div class="cvContact" id="pContact"></div>
+            </header>
+
+            <div class="cvBody">
+              <aside class="cvSide">
+                <section class="cvSection">
+                  <div class="cvH">Resumo</div>
+                  <div class="cvText" id="pSummary"></div>
+                </section>
+
+                <section class="cvSection">
+                  <div class="cvH">Habilidades</div>
+                  <div class="cvSubH">Tecnologias</div>
+                  <div class="cvTags" id="pSkillsTech"></div>
+                  <div class="cvSubH">Administrativo</div>
+                  <div class="cvTags" id="pSkillsAdmin"></div>
+                  <div class="cvSubH">Soft skills</div>
+                  <div class="cvTags" id="pSkillsSoft"></div>
+                </section>
+
+                <section class="cvSection">
+                  <div class="cvH">Idiomas</div>
+                  <div class="cvText" id="pLanguages"></div>
+                </section>
+
+                <section class="cvSection">
+                  <div class="cvH">Certificações</div>
+                  <div id="pCerts" class="cvList"></div>
+                </section>
+              </aside>
+
+              <main class="cvMain">
+                <section class="cvSection">
+                  <div class="cvH">Experiência</div>
+                  <div id="pExps" class="cvList"></div>
+                </section>
+
+                <section class="cvSection">
+                  <div class="cvH">Projetos</div>
+                  <div id="pProjects" class="cvList"></div>
+                </section>
+
+                <section class="cvSection">
+                  <div class="cvH">Formação</div>
+                  <div id="pEdu" class="cvList"></div>
+                </section>
+              </main>
+            </div>
+          </article>
+        </div>
+
+        <div class="helper">Dica: para PDF, clique em “Exportar PDF”. No diálogo de impressão, escolha “Salvar em PDF” e A4.</div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div>Feito para rodar 100% estático (GitHub Pages).</div>
+      <div class="muted">Atalho: Ctrl/Command + P também funciona para salvar em PDF.</div>
+    </footer>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
